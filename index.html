@@ -1,0 +1,547 @@
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>RiseLock - Smart Challenge Alarm</title>  
+    <style>  
+        :root {  
+            --bg-dark: #070B19;  
+            --bg-card: #0E172C;  
+            --bg-input: #050814;  
+            --primary-blue: #1D4ED8;  
+            --accent-blue: #3B82F6;  
+            --cyan: #06B6D4;  
+            --text-light: #F8FAFC;  
+            --text-dim: #64748B;  
+            --green: #10B981;  
+            --coral: #EF4444;  
+        }  * {  
+        box-sizing: border-box;  
+        margin: 0;  
+        padding: 0;  
+        font-family: 'Segoe UI', Roboto, sans-serif;  
+    }  
+
+    body {  
+        background-color: var(--bg-dark);  
+        color: var(--text-light);  
+        display: flex;  
+        justify-content: center;  
+        align-items: center;  
+        min-height: 100vh;  
+        min-height: 100dvh;  
+        overflow: hidden;  
+    }  
+
+    .phone-container {  
+        width: 100%;  
+        max-width: 400px;  
+        height: 100vh;  
+        height: 100dvh;  
+        background-color: var(--bg-card);  
+        position: relative;  
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);  
+        display: flex;  
+        flex-direction: column;  
+        overflow: hidden;  
+    }  
+
+    /* Desktop/Laptop Optimization: Prevents vertical cutoff on shorter screens */
+    @media (min-width: 450px) {
+        .phone-container {
+            height: 90vh;
+            max-height: 850px;
+            border-radius: 32px;
+            border: 4px solid #1E293B;
+        }
+    }
+
+    .screen {  
+        display: none;  
+        flex-direction: column;  
+        height: 100%;  
+        padding: 24px 20px;  
+        width: 100%;  
+    }  
+
+    .screen.active {  
+        display: flex;  
+    }  
+
+    .header h1 {   
+        font-size: 1.1rem;   
+        color: var(--cyan);   
+        text-align: center;   
+        letter-spacing: 3px;   
+        font-weight: 700;  
+    }  
+      
+    .clock-display {  
+        font-size: 3rem;  
+        font-weight: 700;  
+        text-align: center;  
+        margin: auto 0 10px 0;  
+        color: var(--text-light);  
+        letter-spacing: 1px;  
+    }  
+
+    .status-banner {  
+        text-align: center;  
+        font-size: 0.85rem;  
+        color: var(--accent-blue);  
+        margin-bottom: auto;  
+        min-height: 20px;  
+        font-weight: 500;  
+    }  
+
+    .control-panel {  
+        background: rgba(30, 41, 59, 0.5);  
+        border: 1px solid rgba(255, 255, 255, 0.05);  
+        border-radius: 20px;  
+        padding: 20px;  
+        width: 100%;  
+        margin-bottom: auto;  
+    }  
+
+    .control-group { margin-bottom: 16px; }  
+    .control-group:last-child { margin-bottom: 0; }  
+      
+    .control-group label {  
+        display: block;  
+        font-size: 0.75rem;  
+        color: var(--text-dim);  
+        margin-bottom: 8px;  
+        text-transform: uppercase;  
+        letter-spacing: 1px;  
+        font-weight: 600;  
+    }  
+
+    input[type="time"], select {  
+        width: 100%;  
+        padding: 14px;  
+        background: var(--bg-input);  
+        border: 1px solid #334155;  
+        color: white;  
+        border-radius: 12px;  
+        font-size: 1.1rem;  
+        outline: none;  
+        text-align: center;  
+        transition: border-color 0.2s;  
+    }  
+
+    input[type="time"]:focus, select:focus {  
+        border-color: var(--accent-blue);  
+    }  
+
+    .btn {  
+        background: var(--primary-blue);  
+        color: white;  
+        border: none;  
+        padding: 16px;  
+        border-radius: 14px;  
+        font-weight: 600;  
+        font-size: 1rem;  
+        cursor: pointer;  
+        width: 100%;  
+        letter-spacing: 0.5px;  
+        transition: background 0.2s;  
+        margin-top: 10px;  
+    }  
+      
+    .btn:hover { background: var(--accent-blue); }  
+    .btn.active-alarm { background: var(--green); }  
+
+    .ringing {  
+        background-color: var(--bg-dark);  
+        justify-content: center;  
+        align-items: center;  
+        text-align: center;  
+        animation: pulseBg 1.5s infinite ease-in-out;  
+    }  
+    @keyframes pulseBg {  
+        0% { background-color: #070B19; }  
+        50% { background-color: #101B3A; }  
+        100% { background-color: #070B19; }  
+    }  
+    .ringing h2 { font-size: 2.5rem; margin-bottom: 12px; color: var(--coral); font-weight: 800;}  
+    .ringing p { color: var(--text-dim); margin-bottom: 40px; font-size: 0.95rem;}  
+
+    .challenge-box {  
+        background: rgba(30, 41, 59, 0.4);  
+        border: 1px solid rgba(255, 255, 255, 0.03);  
+        border-radius: 20px;  
+        padding: 24px;  
+        text-align: center;  
+        margin-top: 20px;  
+        display: flex;  
+        flex-direction: column;  
+        align-items: center;  
+        flex-grow: 1;  
+        width: 100%;  
+    }  
+    .challenge-instruction { color: var(--cyan); font-size: 0.85rem; margin-bottom: 20px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;}  
+    .display-prompt { font-size: 2.4rem; font-weight: 700; margin-bottom: 30px; word-wrap: break-word; color: var(--text-light); letter-spacing: 0.5px;}  
+      
+    .challenge-box input[type="text"],   
+    .challenge-box input[type="number"] {  
+        width: 100%;  
+        padding: 16px;  
+        font-size: 1.5rem;  
+        text-align: center;  
+        border-radius: 12px;  
+        border: 1px solid #334155;  
+        background: var(--bg-input);  
+        color: white;  
+        outline: none;  
+    }  
+    .challenge-box input:focus { border-color: var(--cyan); }  
+
+    #memory-grid {  
+        display: none;  
+        grid-template-columns: repeat(3, 1fr);  
+        gap: 12px;  
+        margin: 10px auto;  
+        width: 100%;  
+        max-width: 240px;  
+    }  
+    .memory-tile {  
+        aspect-ratio: 1;  
+        background: #1E293B;  
+        border-radius: 12px;  
+        cursor: pointer;  
+        transition: background 0.15s, transform 0.1s;  
+    }  
+    .memory-tile:active { transform: scale(0.95); }  
+    .memory-tile.flash { background: var(--cyan) !important; }  
+
+    .custom-modal {  
+        display: none;  
+        position: absolute;  
+        top: 0; left: 0; width: 100%; height: 100%;  
+        background: rgba(3, 7, 18, 0.9);  
+        z-index: 100;  
+        justify-content: center;  
+        align-items: center;  
+        padding: 24px;  
+    }  
+    .modal-content {  
+        background: var(--bg-card);  
+        padding: 32px 24px;  
+        border-radius: 24px;  
+        text-align: center;  
+        border: 1px solid #334155;  
+        width: 100%;  
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);  
+    }  
+    .modal-content p {  
+        font-size: 1.05rem;  
+        margin-bottom: 24px;  
+        line-height: 1.5;  
+        color: var(--text-light);  
+    }  
+    .modal-btn {  
+        background: var(--primary-blue);  
+        color: white;  
+        border: none;  
+        padding: 14px 36px;  
+        border-radius: 12px;  
+        font-weight: 600;  
+        cursor: pointer;  
+        width: 100%;  
+        font-size: 0.95rem;  
+    }  
+    .modal-btn.fail { background: var(--coral); }  
+</style>
+
+</head>  
+<body>  <div class="phone-container">  
+    <div id="custom-modal" class="custom-modal">  
+        <div class="modal-content">  
+            <p id="modal-text">Notification text...</p>  
+            <button id="modal-action-btn" class="modal-btn" onclick="closeCustomModal()">Continue</button>  
+        </div>  
+    </div>  
+      
+    <div id="screen-dashboard" class="screen active">  
+        <div class="header"><h1>RiseLock</h1></div>  
+          
+        <div class="clock-display" id="live-clock">00:00:00</div>  
+        <div class="status-banner" id="alarm-status">No alarm set</div>  
+          
+        <div class="control-panel">  
+            <div class="control-group">  
+                <label>Set Alarm Time</label>  
+                <input type="time" id="alarm-time">  
+            </div>  
+
+            <div class="control-group">  
+                <label>Wake-Up Task Challenge</label>  
+                <select id="challenge-type">  
+                    <option value="math">🧮 Math Equation</option>  
+                    <option value="spelling">🔤 Unscramble Word</option>  
+                    <option value="memory">🧠 Memory Tile Sequence</option>  
+                </select>  
+            </div>  
+        </div>  
+
+        <button id="set-alarm-btn" class="btn" onclick="toggleAlarmSchedule()">SET ACTIVE ALARM</button>  
+    </div>  
+
+    <div id="screen-ringing" class="screen ringing">  
+        <h2>ALARM RINGING</h2>  
+        <p>Wake up. System access is locked.</p>  
+        <button class="btn" onclick="startChallenge()">START CHALLENGE</button>  
+    </div>  
+
+    <div id="screen-challenge" class="screen">  
+        <div class="header"><h1>SECURITY CHECK</h1></div>  
+
+        <div class="challenge-box">  
+            <div class="challenge-instruction" id="challenge-title">Loading Task...</div>  
+              
+            <div class="display-prompt" id="challenge-prompt">---</div>  
+              
+            <input type="text" id="challenge-input" autocomplete="off" oninput="liveVerifyText()">  
+              
+            <div id="memory-grid">  
+                <div class="memory-tile" data-idx="0" onclick="handleTileTap(0)"></div>  
+                <div class="memory-tile" data-idx="1" onclick="handleTileTap(1)"></div>  
+                <div class="memory-tile" data-idx="2" onclick="handleTileTap(2)"></div>  
+                <div class="memory-tile" data-idx="3" onclick="handleTileTap(3)"></div>  
+                <div class="memory-tile" data-idx="4" onclick="handleTileTap(4)"></div>  
+                <div class="memory-tile" data-idx="5" onclick="handleTileTap(5)"></div>  
+                <div class="memory-tile" data-idx="6" onclick="handleTileTap(6)"></div>  
+                <div class="memory-tile" data-idx="7" onclick="handleTileTap(7)"></div>  
+                <div class="memory-tile" data-idx="8" onclick="handleTileTap(8)"></div>  
+            </div>  
+
+            <p id="live-status-hint" style="font-size:0.8rem; color:var(--text-dim); margin-top:auto; width:100%;">Verifying entry instantly...</p>  
+        </div>  
+    </div>  
+
+</div>  
+
+<script>  
+    let audioCtx = null, oscillator = null, soundInterval = null, clockInterval = null;  
+    let alarmTimeValue = null, isAlarmSet = false, currentTask = 'math';  
+    let correctAnswer = '';  
+      
+    let generatedSequence = [], userSequence = [], targetSequenceLength = 4, acceptGridInput = false;  
+
+    clockInterval = setInterval(() => {  
+        const now = new Date();  
+        const timeString = now.toTimeString().split(' ')[0];  
+        document.getElementById('live-clock').innerText = timeString;  
+
+        if (isAlarmSet && alarmTimeValue) {  
+            if (timeString.substring(0, 5) === alarmTimeValue) {  
+                triggerAlarmRinging();  
+            }  
+        }  
+    }, 1000);  
+
+    function toggleAlarmSchedule() {  
+        const timeInput = document.getElementById('alarm-time').value;  
+        const btn = document.getElementById('set-alarm-btn');  
+        const status = document.getElementById('alarm-status');  
+
+        if (!timeInput) {  
+            showModal("Please select a valid time first.", true);  
+            return;  
+        }  
+
+        if (!isAlarmSet) {  
+            isAlarmSet = true;  
+            alarmTimeValue = timeInput;  
+            currentTask = document.getElementById('challenge-type').value;  
+            btn.innerText = "CANCEL ALARM SCHEDULE";  
+            btn.classList.add('active-alarm');  
+            status.innerText = `Alarm armed for ${timeInput}`;  
+        } else {  
+            isAlarmSet = false;  
+            alarmTimeValue = null;  
+            btn.innerText = "SET ACTIVE ALARM";  
+            btn.classList.remove('active-alarm');  
+            status.innerText = "No alarm set";  
+        }  
+    }  
+
+    function triggerAlarmRinging() {  
+        isAlarmSet = false;  
+        showScreen('screen-ringing');  
+        startSirenSound();  
+    }  
+
+    function startSirenSound() {  
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();  
+        oscillator = audioCtx.createOscillator();  
+        const gainNode = audioCtx.createGain();  
+        oscillator.connect(gainNode);  
+        gainNode.connect(audioCtx.destination);  
+        oscillator.type = 'sawtooth';  
+        oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);  
+          
+        soundInterval = setInterval(() => {  
+            oscillator.frequency.setValueAtTime(oscillator.frequency.value === 440 ? 880 : 440, audioCtx.currentTime);  
+        }, 150);  
+        oscillator.start();  
+    }  
+
+    function stopSirenSound() {  
+        if (oscillator) { try { oscillator.stop(); oscillator.disconnect(); } catch(e){} }  
+        if (soundInterval) clearInterval(soundInterval);  
+    }  
+
+    function showScreen(screenId) {  
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));  
+        document.getElementById(screenId).classList.add('active');  
+    }  
+
+    function startChallenge() {  
+        showScreen('screen-challenge');  
+        generateTaskData();  
+    }  
+
+    function generateTaskData() {  
+        const title = document.getElementById('challenge-title');  
+        const prompt = document.getElementById('challenge-prompt');  
+        const input = document.getElementById('challenge-input');  
+        const grid = document.getElementById('memory-grid');  
+        const hint = document.getElementById('live-status-hint');  
+          
+        input.style.display = "block"; input.value = "";  
+        grid.style.display = "none";  
+        prompt.style.fontSize = "2.4rem";  
+        hint.innerText = "Verifying entry instantly...";  
+
+        if (currentTask === 'math') {  
+            title.innerText = "Solve the equation:";  
+            const n1 = Math.floor(Math.random() * 70) + 25;  
+            const n2 = Math.floor(Math.random() * 60) + 15;  
+            correctAnswer = (n1 + n2).toString();  
+            prompt.innerText = `${n1} + ${n2}`;  
+            input.type = "number";  
+            input.focus();  
+        }   
+        else if (currentTask === 'spelling') {  
+            title.innerText = "Unscramble the word:";  
+            const pool = ["EXAGGERATE", "QUARANTINE", "ACCOMMODATION", "CONSCIENTIOUS"];  
+            correctAnswer = pool[Math.floor(Math.random() * pool.length)];  
+              
+            let scrambled = correctAnswer;  
+            while (scrambled === correctAnswer) {  
+                scrambled = correctAnswer.split('').sort(() => Math.random() - 0.5).join('');  
+            }  
+              
+            prompt.innerText = scrambled;  
+            prompt.style.fontSize = "1.8rem";  
+            input.type = "text";  
+            input.focus();  
+        }   
+        else if (currentTask === 'memory') {  
+            title.innerText = "Replicate pattern sequence:";  
+            prompt.innerText = "🧠 ...";  
+            input.style.display = "none";  
+            grid.style.display = "grid";  
+            hint.innerText = "Watch carefully.";  
+              
+            generateMemoryPattern();  
+        }  
+    }  
+
+    function liveVerifyText() {  
+        const userVal = document.getElementById('challenge-input').value.trim().toUpperCase();  
+        if (userVal === correctAnswer) {  
+            executeChallengeSuccess();  
+        }  
+    }  
+
+    function generateMemoryPattern() {  
+        generatedSequence = [];  
+        userSequence = [];  
+        acceptGridInput = false;  
+
+        for(let i = 0; i < targetSequenceLength; i++) {  
+            generatedSequence.push(Math.floor(Math.random() * 9));  
+        }  
+
+        let step = 0;  
+        const playbackInterval = setInterval(() => {  
+            if(step >= generatedSequence.length) {  
+                clearInterval(playbackInterval);  
+                document.getElementById('challenge-prompt').innerText = "Go!";  
+                acceptGridInput = true;  
+                return;  
+            }  
+            flashTileElement(generatedSequence[step]);  
+            step++;  
+        }, 600);  
+    }  
+
+    function flashTileElement(index) {  
+        const tiles = document.querySelectorAll('.memory-tile');  
+        tiles[index].classList.add('flash');  
+        setTimeout(() => {  
+            tiles[index].classList.remove('flash');  
+        }, 300);  
+    }  
+
+    function handleTileTap(index) {  
+        if(!acceptGridInput) return;  
+
+        flashTileElement(index);  
+        userSequence.push(index);  
+
+        const currentStepIdx = userSequence.length - 1;  
+        if(userSequence[currentStepIdx] !== generatedSequence[currentStepIdx]) {  
+            acceptGridInput = false;  
+            showModal("Incorrect sequence. Try again.", true);  
+            setTimeout(() => {  
+                generateTaskData();  
+            }, 1500);  
+            return;  
+        }  
+
+        if(userSequence.length === generatedSequence.length) {  
+            acceptGridInput = false;  
+            executeChallengeSuccess();  
+        }  
+    }  
+
+    function executeChallengeSuccess() {  
+        stopSirenSound();  
+        showModal("Challenge Complete. Alarm is off.", false, () => {  
+            document.getElementById('set-alarm-btn').innerText = "SET ACTIVE ALARM";  
+            document.getElementById('set-alarm-btn').classList.remove('active-alarm');  
+            document.getElementById('alarm-status').innerText = "No alarm set";  
+            showScreen('screen-dashboard');  
+        });  
+    }  
+
+    let activeModalCallback = null;  
+
+    function showModal(msg, isError = false, callback = null) {  
+        document.getElementById('modal-text').innerText = msg;  
+        const actionBtn = document.getElementById('modal-action-btn');  
+          
+        if(isError) {  
+            actionBtn.classList.add('fail');  
+        } else {  
+            actionBtn.classList.remove('fail');  
+        }  
+          
+        activeModalCallback = callback;  
+        document.getElementById('custom-modal').style.display = "flex";  
+    }  
+
+    function closeCustomModal() {  
+        document.getElementById('custom-modal').style.display = "none";  
+        if (activeModalCallback) {  
+            activeModalCallback();  
+            activeModalCallback = null;  
+        }  
+    }  
+</script>
+
+</body>  
+</html>
