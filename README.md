@@ -20,7 +20,7 @@ Technologies Used
 
 
 Installation / Usage
-1. Open the repository and download or clone the project.
+1. Open the repository and download the project files, or clone the repository using Git.
 2. Open the "index.html" file in a web browser.
 3. Set an alarm using the available controls.
 4. Follow the wake-up challenge when the alarm activates.
